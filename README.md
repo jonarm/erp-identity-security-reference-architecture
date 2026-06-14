@@ -19,75 +19,43 @@ The architecture is designed around three core principles:
 ## Architecture Overview
 ```mermaid
 graph TD
-    subgraph TENANT["🏢 Financial Services Tenant — Contoso Financial Services"]
-        
-        subgraph IDENTITY["Identity Layer"]
-            ENTRA["Entra ID P2\n(Identity Provider)"]
-            CA["Conditional Access\n6 Policies"]
-            PIM["PIM\nJIT Admin Access"]
-            EM["Entitlement Management\nAccess Packages + SoD"]
+    subgraph TENANT["FINANCIAL SERVICES TENANT"]
+
+        ENTRA["Entra ID P2"]
+        D365["Dynamics 365 F&O\n(SaaS ERP)"]
+
+        ENTRA <-->|"SSO/SAML"| D365
+
+        ENTRA --> CA
+
+        subgraph CONTROLS[""]
+            CA["Conditional Access\n(6 Policies)"]
+            PIM["PIM\n(JIT Admin)"]
+            EM["Entitlement\nManagement"]
         end
 
-        subgraph ERP["ERP Layer"]
-            D365["Microsoft Dynamics 365\nFinance and Operations\n(SaaS ERP)"]
+        CA --> SENTINEL
+
+        subgraph SIEM[""]
+            SENTINEL["Microsoft Sentinel (SIEM)\nEntra ID Logs │ M365 Logs │ Defender XDR Alerts\n8 Custom KQL Rules → 3 SOAR Playbooks"]
         end
 
-        subgraph MONITORING["Monitoring and Response Layer"]
-            SENTINEL["Microsoft Sentinel\nSIEM — 8 Custom KQL Rules\n3 SOAR Playbooks"]
-            MCAS["Defender for Cloud Apps\nCASB — Session Controls\nActivity Policies + Anomaly Detection"]
-            DEFENDER["Microsoft Defender XDR\nThreat Protection"]
-        end
-
-        subgraph DATASOURCES["Data Sources"]
-            LOGS1["Entra ID Audit Logs\nSign-in Logs"]
-            LOGS2["M365 Activity Logs"]
-            LOGS3["Defender XDR Alerts"]
+        subgraph CASB[""]
+            MCAS["Defender for Cloud Apps (CASB)\nSession Controls │ Activity Policies │ Anomaly"]
         end
 
     end
 
-    %% Authentication Flow
-    ENTRA -->|"SSO / SAML 2.0"| D365
-    D365 -->|"Auth Request"| ENTRA
-
-    %% Identity Controls
-    ENTRA --> CA
-    ENTRA --> PIM
-    ENTRA --> EM
-
-    %% CA enforces on ERP
-    CA -->|"Enforce on every session"| D365
-
-    %% PIM controls admin access
-    PIM -->|"JIT activation\nApproval required"| D365
-
-    %% MCAS session proxy
-    CA -->|"Route unmanaged\ndevice sessions"| MCAS
-    MCAS -->|"Proxied session\nwith controls"| D365
-
-    %% Logs flow to Sentinel
-    LOGS1 --> SENTINEL
-    LOGS2 --> SENTINEL
-    LOGS3 --> SENTINEL
-    DEFENDER --> SENTINEL
-    MCAS -->|"Activity alerts"| SENTINEL
-
-    %% Sentinel responds
-    SENTINEL -->|"SOAR Playbook:\nRevoke session"| ENTRA
-    SENTINEL -->|"SOAR Playbook:\nBlock user"| ENTRA
-
-    %% Styling
     classDef identity fill:#0078d4,stroke:#005a9e,color:#fff
     classDef erp fill:#107c10,stroke:#0a5c0a,color:#fff
     classDef monitoring fill:#8764b8,stroke:#6b4f9e,color:#fff
-    classDef datasource fill:#767676,stroke:#5a5a5a,color:#fff
+    classDef casb fill:#c43e1c,stroke:#a33519,color:#fff
 
     class ENTRA,CA,PIM,EM identity
     class D365 erp
-    class SENTINEL,MCAS,DEFENDER monitoring
-    class LOGS1,LOGS2,LOGS3 datasource
+    class SENTINEL monitoring
+    class MCAS casb
 ```
-
 
 ## old archi
 ┌─────────────────────────────────────────────────────────────┐
