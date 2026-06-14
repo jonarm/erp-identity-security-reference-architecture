@@ -118,59 +118,59 @@ A former ERP System Admin account is reactivated via a misconfigured HR sync. Th
 ---
 
 ## Repository Structure
-├── README.md
+```mermaid
+graph LR
+    ROOT["📁 erp-identity-security\nreference-architecture"]
 
-├── docs/
+    ROOT --> README["📄 README.md"]
+    ROOT --> DOCS["📁 docs/"]
+    ROOT --> TERRAFORM["📁 terraform/"]
+    ROOT --> SENTINEL["📁 sentinel/"]
+    ROOT --> ENTRAID["📁 entra-id/"]
+    ROOT --> SCRIPTS["📁 scripts/"]
+    ROOT --> ATTACK["📁 attack-simulation/"]
 
-│   ├── architecture-overview.md
+    %% Docs
+    DOCS --> ARCH["📄 architecture-overview.md"]
+    DOCS --> THREAT["📄 erp-threat-model.md"]
+    DOCS --> LIFECYCLE["📄 identity-lifecycle.md"]
+    DOCS --> SOD["📄 segregation-of-duties.md"]
+    DOCS --> FRAMEWORK["📄 framework-mapping.md"]
+    DOCS --> ADR["📁 adr/"]
 
-│   ├── erp-threat-model.md
+    ADR --> ADR1["📄 ADR-001\nsso-saml-vs-oidc"]
+    ADR --> ADR2["📄 ADR-002\npim-for-erp-admin"]
+    ADR --> ADR3["📄 ADR-003\nmcas-session-controls"]
+    ADR --> ADR4["📄 ADR-004\nscim-vs-manual-provisioning"]
 
-│   ├── identity-lifecycle.md
+    %% Sentinel
+    SENTINEL --> RULES["📁 analytics-rules/"]
+    SENTINEL --> WORKBOOKS["📁 workbooks/"]
+    SENTINEL --> PLAYBOOKS["📁 playbooks/"]
 
-│   ├── segregation-of-duties.md
+    %% Entra ID
+    ENTRAID --> CA["📁 conditional-access\n-policies/"]
+    ENTRAID --> ROLES["📁 app-roles/"]
+    ENTRAID --> PACKAGES["📁 access-packages/"]
+    ENTRAID --> PIM["📁 pim-configuration/"]
 
-│   ├── framework-mapping.md
+    %% Attack Simulation
+    ATTACK --> S1["📁 scenario-01\nmfa-fatigue"]
+    ATTACK --> S2["📁 scenario-02\ndormant-account\nreactivation"]
+    ATTACK --> S3["📁 scenario-03\nbulk-data\nexfiltration"]
 
-│   └── adr/
+    classDef folder fill:#0078d4,stroke:#005a9e,color:#fff
+    classDef file fill:#505050,stroke:#383838,color:#fff
+    classDef adr fill:#8764b8,stroke:#6b4f9e,color:#fff
+    classDef sentinel fill:#c43e1c,stroke:#a33519,color:#fff
+    classDef attack fill:#107c10,stroke:#0a5c0a,color:#fff
 
-│       ├── ADR-001-sso-saml-vs-oidc.md
-
-│       ├── ADR-002-pim-for-erp-admin.md
-
-│       ├── ADR-003-mcas-session-controls.md
-
-│       └── ADR-004-scim-vs-manual-provisioning.md
-
-├── terraform/
-
-├── sentinel/
-
-│   ├── analytics-rules/
-
-│   ├── workbooks/
-
-│   └── playbooks/
-
-├── entra-id/
-
-│   ├── conditional-access-policies/
-
-│   ├── app-roles/
-
-│   ├── access-packages/
-
-│   └── pim-configuration/
-
-├── scripts/
-
-└── attack-simulation/
-
-├── scenario-01-mfa-fatigue/
-
-├── scenario-02-dormant-account-reactivation/
-
-└── scenario-03-bulk-data-exfiltration/
+    class ROOT,DOCS,TERRAFORM,SENTINEL,ENTRAID,SCRIPTS,ATTACK,ADR folder
+    class README,ARCH,THREAT,LIFECYCLE,SOD,FRAMEWORK file
+    class ADR1,ADR2,ADR3,ADR4 adr
+    class RULES,WORKBOOKS,PLAYBOOKS,CA,ROLES,PACKAGES,PIM sentinel
+    class S1,S2,S3 attack
+```
 ---
 
 ## Deployment Prerequisites
