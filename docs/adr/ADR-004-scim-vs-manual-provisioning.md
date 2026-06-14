@@ -288,101 +288,88 @@ the same user by the provisioning system.*
 ---
 
 ### Joiner Workflow (Detailed)
-Day -5: HR creates employee record in HR system
-
-└── SCIM syncs to Entra ID (account created, disabled)
-Day -1: Scheduled enable trigger fires
-
-└── Account enabled in Entra ID
-
-└── Access package assigned based on job title mapping
-
-└── D365 roles provisioned via package
-
-└── Welcome email sent with login instructions
-
-└── Manager notified of provisioning completion
-
-└── Sentinel log: joiner provisioning event
-Day 1:  Employee starts — account and access ready
-
-└── Manager completes access verification checklist
+```mermaid
+timeline
+    title Joiner Workflow — New Employee Provisioning
+    Day -5 : HR creates employee record in HR system
+           : SCIM syncs to Entra ID
+           : Account created in disabled state
+    Day -1 : Scheduled enable trigger fires
+           : Account enabled in Entra ID
+           : Access package assigned by job title
+           : D365 roles provisioned via package
+           : Welcome email sent to employee
+           : Manager notified of completion
+           : Sentinel logs joiner provisioning event
+    Day 1  : Employee starts
+           : Account and access ready
+           : Manager completes access verification checklist
+```
 
 ---
 
 ### Leaver Workflow (Detailed)
-HR marks employee as Terminated (employment_status = Terminated)
+```mermaid
+flowchart TD
+    A["HR marks employee as Terminated\nemployment_status = Terminated"]
+    A --> B["SCIM deprovision event fires\nwithin 1 hour"]
+    B --> C["Entra ID account disabled immediately"]
+    C --> C1["All active sessions invalidated\ntoken revocation"]
+    C --> C2["MFA methods retained\nfor 30 days — audit purposes"]
+    C --> D["All access package assignments removed"]
+    D --> D1["D365 roles deprovisioned"]
+    D --> D2["PIM eligible assignments removed"]
+    D --> E["Sentinel alert logged\nleaver deprovisioning event"]
+    E --> F["Manager notified\nof deprovisioning completion"]
+    F --> G["Day +30\nAccount permanently deleted from Entra ID"]
+    G --> G1["Audit logs retained\nper retention policy"]
 
-│
+    classDef action fill:#c43e1c,stroke:#a33519,color:#fff
+    classDef sub fill:#505050,stroke:#383838,color:#fff
+    classDef final fill:#107c10,stroke:#0a5c0a,color:#fff
 
-├── SCIM deprovision event fires within 1 hour
-
-│
-
-├── Entra ID account disabled immediately
-
-│    └── All active sessions invalidated (token revocation)
-
-│    └── MFA methods retained for 30 days (audit purposes)
-
-│
-
-├── All access package assignments removed
-
-│    └── D365 roles deprovisioned
-
-│    └── PIM eligible assignments removed
-
-│
-
-├── Sentinel alert: leaver deprovisioning event logged
-
-│
-
-├── Manager notified of deprovisioning completion
-
-│
-
-└── Day +30: Account permanently deleted from Entra ID
-
-└── Audit logs retained per retention policy
-
+    class A,B,C,D,E,F action
+    class C1,C2,D1,D2,G1 sub
+    class G final
+```
 ---
 
 ### Mover Workflow (Detailed)
-HR updates employee job title or department
+```mermaid
+flowchart TD
+    A["HR updates employee\njob title or department"]
+    A --> B["SCIM update event fires\nwithin 4 hours"]
+    B --> C["Entra ID attributes updated\ndepartment and jobTitle"]
+    C --> D["Current access package evaluated\nagainst new job title"]
+    D --> E{"Package\nchange\nrequired?"}
 
-│
+    E -->|Yes| F["New access package\nassigned first"]
+    F --> G["Old access package removed\nafter confirmation\nnever remove before grant"]
+    G --> H["SoD check on\nnew package combination"]
 
-├── SCIM update event fires within 4 hours
+    E -->|No| H
 
-│
+    H --> I{"SoD\nconflict\ndetected?"}
 
-├── Entra ID attributes updated (department, jobTitle)
+    I -->|Yes| J["Provisioning blocked"]
+    J --> K["Security team alerted\nfor manual resolution"]
 
-│
+    I -->|No| L["Access change confirmed\nnew roles active in D365"]
+    L --> M["Sentinel alert logged\nmover access change event"]
+    K --> M
 
-├── Current access package evaluated against new job title
+    classDef action fill:#0078d4,stroke:#005a9e,color:#fff
+    classDef decision fill:#8764b8,stroke:#6b4f9e,color:#fff
+    classDef block fill:#c43e1c,stroke:#a33519,color:#fff
+    classDef success fill:#107c10,stroke:#0a5c0a,color:#fff
+    classDef log fill:#505050,stroke:#383838,color:#fff
 
-│    └── If package changes required:
-
-│         ├── New access package assigned first
-
-│         └── Old access package removed after confirmation
-
-│              (never remove before grant — prevents access gap)
-
-│
-
-├── SoD check: new package combination validated
-
-│    └── If SoD conflict detected: provisioning blocked
-
-│    └── Security team alerted for manual resolution
-
-│
-
-└── Sentinel alert: mover access change event logged
+    class A,B,C,D,F,G action
+    class E,I decision
+    class J,K block
+    class L success
+    class M log
+```
 
 ---
 
