@@ -22,26 +22,26 @@ graph TD
     subgraph TENANT["FINANCIAL SERVICES TENANT"]
 
         ENTRA["Entra ID P2"]
-        D365["Dynamics 365 F&O\n(SaaS ERP)"]
+        D365["Dynamics 365 F&O SaaS ERP"]
 
-        ENTRA <-->|"SSO/SAML"| D365
+        ENTRA <-->|SSO/SAML| D365
 
         ENTRA --> CA
 
-        subgraph CONTROLS[""]
-            CA["Conditional Access\n(6 Policies)"]
-            PIM["PIM\n(JIT Admin)"]
-            EM["Entitlement\nManagement"]
+        subgraph CONTROLS["Identity Controls"]
+            CA["Conditional Access 6 Policies"]
+            PIM["PIM JIT Admin"]
+            EM["Entitlement Management"]
         end
 
         CA --> SENTINEL
 
-        subgraph SIEM[""]
-            SENTINEL["Microsoft Sentinel (SIEM)\nEntra ID Logs │ M365 Logs │ Defender XDR Alerts\n8 Custom KQL Rules → 3 SOAR Playbooks"]
+        subgraph SIEM["Detection and Response"]
+            SENTINEL["Microsoft Sentinel SIEM\nEntra ID Logs | M365 Logs | Defender XDR Alerts\n8 Custom KQL Rules → 3 SOAR Playbooks"]
         end
 
-        subgraph CASB[""]
-            MCAS["Defender for Cloud Apps (CASB)\nSession Controls │ Activity Policies │ Anomaly"]
+        subgraph CASB["Session Security"]
+            MCAS["Defender for Cloud Apps CASB\nSession Controls | Activity Policies | Anomaly"]
         end
 
     end
@@ -56,6 +56,7 @@ graph TD
     class SENTINEL monitoring
     class MCAS casb
 ```
+
 
 ## old archi
 ┌─────────────────────────────────────────────────────────────┐
