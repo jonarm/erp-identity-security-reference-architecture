@@ -141,45 +141,49 @@ into Entra ID and Dynamics 365:
   reassignment based on new job title
 
 **How SCIM works in this architecture:**
-HR System (source of truth)
+```mermaid
+sequenceDiagram
+    participant HR as HR System\n(Source of Truth)
+    participant SCIM as SCIM 2.0\nProtocol
+    participant ENTRA as Entra ID\nProvisioning Service
+    participant PKG as Access Package\n+ SoD Engine
+    participant D365 as Dynamics 365\nF&O
+    participant PIM as PIM\nEligible Roles
 
-│
+    %% Joiner
+    rect rgb(0, 100, 180)
+        Note over HR,D365: JOINER — New Employee
+        HR->>SCIM: Create user event
+        SCIM->>ENTRA: POST /Users
+        ENTRA->>ENTRA: Create Entra ID account
+        ENTRA->>PKG: Assign access package\nbased on job title
+        PKG->>PKG: Validate SoD constraints
+        PKG->>D365: Provision D365 roles
+    end
 
-│ SCIM 2.0 protocol
+    %% Mover
+    rect rgb(100, 60, 160)
+        Note over HR,D365: MOVER — Role or Department Change
+        HR->>SCIM: Update user event\ndepartment or title change
+        SCIM->>ENTRA: PATCH /Users
+        ENTRA->>PKG: Assign new access package
+        PKG->>PKG: SoD check on\nnew combination
+        PKG->>D365: Provision new D365 roles
+        PKG->>D365: Remove old D365 roles
+    end
 
-▼
-
-Entra ID Provisioning Service
-
-│
-
-├── Create user → Entra ID account created
-
-│                  Access package assigned by job title
-
-│                  D365 roles provisioned via package
-
-│
-
-├── Update user → Department/title change detected
-
-│                  Old access package removed
-
-│                  New access package assigned
-
-│                  SoD check enforced at assignment
-
-│
-
-└── Disable user → Employment status = Terminated
-
-Entra ID account disabled immediately
-
-All D365 roles removed
-
-Active sessions revoked
-
-PIM eligible assignments removed
+    %% Leaver
+    rect rgb(180, 50, 20)
+        Note over HR,D365: LEAVER — Termination
+        HR->>SCIM: Disable user event\nemployment status = Terminated
+        SCIM->>ENTRA: PATCH /Users active=false
+        ENTRA->>ENTRA: Disable account immediately
+        ENTRA->>ENTRA: Revoke all active sessions\nand tokens
+        ENTRA->>PKG: Remove all access packages
+        PKG->>D365: Deprovision all D365 roles
+        ENTRA->>PIM: Remove all eligible\nPIM assignments
+    end
+```
 
 **Strengths:**
 - Eliminates manual deprovisioning — termination is automatic 
