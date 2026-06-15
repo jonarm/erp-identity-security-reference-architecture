@@ -68,26 +68,71 @@ means a single user must never hold both roles simultaneously.
 - 🔴 **CONFLICT** — Technically blocked via Entra ID app role constraints
 - ⚠️ **RISK** — Permitted only with documented compensating control and CISO approval
 - ✅ **PERMITTED** — No SoD conflict
-R01  R02  R03  R04  R05  R06  R07  R08  R09  R10
-R01       —    ✅   ✅   ✅   ✅   ✅   ✅   ✅   ⚠️   ⚠️
 
-R02       ✅   —    ✅   🔴   ✅   ✅   ✅   ✅   ⚠️   ⚠️
+```mermaid
+graph LR
+    subgraph LEGEND["Legend"]
+        L1["🔴 CONFLICT — Blocked"]
+        L2["⚠️ RISK — Compensating control required"]
+        L3["✅ PERMITTED — No conflict"]
+    end
 
-R03       ✅   ✅   —    🔴   ✅   ✅   🔴   ✅   ⚠️   ⚠️
+    subgraph FINANCE["Finance Roles"]
+        R01["R01\nFinance User"]
+        R02["R02\nFinance Manager"]
+        R03["R03\nAP Officer"]
+        R04["R04\nPayment Processor"]
+    end
 
-R04       ✅   🔴   🔴   —    ✅   ✅   🔴   ✅   ⚠️   ⚠️
+    subgraph PROCUREMENT["Procurement Roles"]
+        R05["R05\nProcurement Officer"]
+        R06["R06\nProcurement Approver"]
+        R07["R07\nVendor Master Maintainer"]
+    end
 
-R05       ✅   ✅   ✅   ✅   —    🔴   ✅   ✅   ⚠️   ⚠️
+    subgraph COMPLIANCE["Compliance Roles"]
+        R08["R08\nRisk Auditor"]
+    end
 
-R06       ✅   ✅   ✅   ✅   🔴   —    ✅   ✅   ⚠️   ⚠️
+    subgraph ADMIN["Admin Roles — JIT Only"]
+        R09["R09\nERP System Admin"]
+        R10["R10\nGlobal Admin"]
+    end
 
-R07       ✅   ✅   🔴   🔴   ✅   ✅   —    ✅   ⚠️   ⚠️
+    %% CONFLICT relationships — 🔴
+    R02 -- "🔴 CONFLICT" --- R04
+    R03 -- "🔴 CONFLICT" --- R04
+    R03 -- "🔴 CONFLICT" --- R07
+    R04 -- "🔴 CONFLICT" --- R07
+    R05 -- "🔴 CONFLICT" --- R06
+    R09 -- "🔴 CONFLICT" --- R10
 
-R08       ✅   ✅   ✅   ✅   ✅   ✅   ✅   —    ✅   ✅
+    %% RISK relationships — ⚠️
+    R01 -- "⚠️ RISK" --- R09
+    R01 -- "⚠️ RISK" --- R10
+    R02 -- "⚠️ RISK" --- R09
+    R02 -- "⚠️ RISK" --- R10
+    R03 -- "⚠️ RISK" --- R09
+    R03 -- "⚠️ RISK" --- R10
+    R04 -- "⚠️ RISK" --- R09
+    R04 -- "⚠️ RISK" --- R10
+    R05 -- "⚠️ RISK" --- R09
+    R05 -- "⚠️ RISK" --- R10
+    R06 -- "⚠️ RISK" --- R09
+    R06 -- "⚠️ RISK" --- R10
+    R07 -- "⚠️ RISK" --- R09
+    R07 -- "⚠️ RISK" --- R10
 
-R09       ⚠️   ⚠️   ⚠️   ⚠️   ⚠️   ⚠️   ⚠️   ✅   —    🔴
+    classDef finance fill:#0078d4,stroke:#005a9e,color:#fff
+    classDef procurement fill:#107c10,stroke:#0a5c0a,color:#fff
+    classDef compliance fill:#505050,stroke:#383838,color:#fff
+    classDef admin fill:#c43e1c,stroke:#a33519,color:#fff
 
-R10       ⚠️   ⚠️   ⚠️   ⚠️   ⚠️   ⚠️   ⚠️   ✅   🔴   —
+    class R01,R02,R03,R04 finance
+    class R05,R06,R07 procurement
+    class R08 compliance
+    class R09,R10 admin
+```
 
 ---
 
