@@ -24,18 +24,22 @@ provider "azuread" {
 
 # Azure Resource Manager provider
 provider "azurerm" {
-  features {}
-  tenant_id               = var.tenant_id
-  subscription_id         = var.subscription_id
-  client_id               = var.client_id
-  client_secret           = var.client_secret
-  skip_provider_registration = true
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+  tenant_id                    = var.tenant_id
+  subscription_id              = var.subscription_id
+  client_id                    = var.client_id
+  client_secret                = var.client_secret
+  skip_provider_registration   = true
 }
 
 # Resource group for all Sentinel and monitoring resources
 resource "azurerm_resource_group" "erp_security" {
   name     = "rg-erp-security-lab"
-  location = "australiaeast"
+  location = "eastus"
 
   tags = {
     environment = var.environment

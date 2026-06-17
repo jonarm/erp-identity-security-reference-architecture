@@ -1,0 +1,27 @@
+{
+  "displayName": "CA004 - Sign-in Risk Step-Up Authentication",
+  "state": "enabled",
+  "conditions": {
+    "users": {
+      "includeUsers": ["All"],
+      "excludeUsers": [],
+      "excludeGroups": []
+    },
+    "applications": {
+      "includeApplications": ["All"]
+    },
+    "clientAppTypes": ["all"],
+    "signInRiskLevels": [
+      "medium",
+      "high"
+    ]
+  },
+  "grantControls": {
+    "operator": "AND",
+    "builtInControls": [
+      "mfa",
+      "passwordChange"
+    ]
+  },
+  "sessionControls": null
+}

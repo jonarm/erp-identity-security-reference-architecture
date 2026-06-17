@@ -47,3 +47,9 @@ variable "owner" {
   type        = string
   default     = "Jonar"
 }
+
+variable "erp_admin_upn" {
+  description = "UPN of the user to assign as eligible ERP admin in PIM"
+  type        = string
+  # Example: admin@jonarmarzan.onmicrosoft.com
+}
