@@ -1,0 +1,63 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "resources": [
+    {
+      "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
+      "apiVersion": "2023-02-01-preview",
+      "name": "[concat(parameters('workspaceName'), '/Microsoft.SecurityInsights/mfa-fatigue-detection')]",
+      "kind": "Scheduled",
+      "properties": {
+        "displayName": "ERP - MFA Fatigue Attack Detection",
+        "description": "Detects potential MFA fatigue attacks where a user receives an abnormally high number of MFA requests in a short period. Maps to MITRE ATT&CK T1621 - Multi-Factor Authentication Request Generation.",
+        "severity": "High",
+        "enabled": true,
+        "query": "SigninLogs\n| where TimeGenerated > ago(10m)\n| where ResultType == \"50074\" or ResultType == \"50076\"\n| summarize\n    MFARequestCount = count(),\n    FirstRequest = min(TimeGenerated),\n    LastRequest = max(TimeGenerated),\n    IPAddresses = make_set(IPAddress),\n    Locations = make_set(Location)\n    by UserPrincipalName, AppDisplayName\n| where MFARequestCount >= 10\n| extend\n    TimespanMinutes = datetime_diff('minute', LastRequest, FirstRequest),\n    MITRETechnique = \"T1621 - MFA Request Generation\",\n    RiskLevel = \"High\"\n| project\n    UserPrincipalName,\n    AppDisplayName,\n    MFARequestCount,\n    TimespanMinutes,\n    FirstRequest,\n    LastRequest,\n    IPAddresses,\n    Locations,\n    MITRETechnique,\n    RiskLevel",
+        "queryFrequency": "PT10M",
+        "queryPeriod": "PT10M",
+        "triggerOperator": "GreaterThan",
+        "triggerThreshold": 0,
+        "suppressionDuration": "PT1H",
+        "suppressionEnabled": false,
+        "tactics": ["CredentialAccess"],
+        "techniques": ["T1621"],
+        "incidentConfiguration": {
+          "createIncident": true,
+          "groupingConfiguration": {
+            "enabled": true,
+            "reopenClosedIncident": false,
+            "lookbackDuration": "PT5H",
+            "matchingMethod": "AllEntities",
+            "groupByEntities": ["Account"]
+          }
+        },
+        "entityMappings": [
+          {
+            "entityType": "Account",
+            "fieldMappings": [
+              {
+                "identifier": "FullName",
+                "columnName": "UserPrincipalName"
+              }
+            ]
+          },
+          {
+            "entityType": "IP",
+            "fieldMappings": [
+              {
+                "identifier": "Address",
+                "columnName": "IPAddresses"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "parameters": {
+    "workspaceName": {
+      "type": "string",
+      "defaultValue": "law-erp-sentinel"
+    }
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "resources": [
+    {
+      "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
+      "apiVersion": "2023-02-01-preview",
+      "name": "[concat(parameters('workspaceName'), '/Microsoft.SecurityInsights/erp-dormant-account-activation')]",
+      "kind": "Scheduled",
+      "properties": {
+        "displayName": "ERP - Dormant Account Activation",
+        "description": "Detects accounts that have been inactive for 30 or more days suddenly signing in. May indicate compromised credentials or unauthorised account reactivation. Maps to MITRE ATT&CK T1078 - Valid Accounts.",
+        "severity": "High",
+        "enabled": true,
+        "query": "let lookbackPeriod = 14d;\nlet recentWindow = 1d;\nlet activeUsers = SigninLogs\n| where TimeGenerated > ago(lookbackPeriod)\n| where TimeGenerated < ago(recentWindow)\n| where ResultType == 0\n| summarize LastSeen = max(TimeGenerated) by UserPrincipalName;\nSigninLogs\n| where TimeGenerated > ago(recentWindow)\n| where ResultType == 0\n| summarize\n    RecentSignIn = max(TimeGenerated),\n    IPAddresses = make_set(IPAddress),\n    Locations = make_set(Location),\n    Apps = make_set(AppDisplayName)\n    by UserPrincipalName\n| join kind=inner activeUsers on UserPrincipalName\n| extend DaysDormant = datetime_diff('day', RecentSignIn, LastSeen)\n| where DaysDormant >= 30\n| extend\n    MITRETechnique = \"T1078 - Valid Accounts\",\n    RiskLevel = iff(DaysDormant >= 90, \"Critical\", \"High\")\n| project\n    UserPrincipalName,\n    DaysDormant,\n    LastSeenBefore = LastSeen,\n    RecentSignIn,\n    IPAddresses,\n    Locations,\n    Apps,\n    MITRETechnique,\n    RiskLevel\n| order by DaysDormant desc",
+        "queryFrequency": "P1D",
+        "queryPeriod": "P14D",
+        "triggerOperator": "GreaterThan",
+        "triggerThreshold": 0,
+        "suppressionDuration": "PT12H",
+        "suppressionEnabled": false,
+        "tactics": ["InitialAccess", "Persistence"],
+        "techniques": ["T1078"],
+        "incidentConfiguration": {
+          "createIncident": true,
+          "groupingConfiguration": {
+            "enabled": true,
+            "reopenClosedIncident": false,
+            "lookbackDuration": "P1D",
+            "matchingMethod": "AllEntities",
+            "groupByEntities": ["Account"]
+          }
+        },
+        "entityMappings": [
+          {
+            "entityType": "Account",
+            "fieldMappings": [
+              {
+                "identifier": "FullName",
+                "columnName": "UserPrincipalName"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "parameters": {
+    "workspaceName": {
+      "type": "string",
+      "defaultValue": "law-erp-sentinel"
+    }
+  }
+}

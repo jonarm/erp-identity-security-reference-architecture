@@ -1,0 +1,63 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "resources": [
+    {
+      "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
+      "apiVersion": "2023-02-01-preview",
+      "name": "[concat(parameters('workspaceName'), '/Microsoft.SecurityInsights/erp-bulk-data-export')]",
+      "kind": "Scheduled",
+      "properties": {
+        "displayName": "ERP - Bulk Data Export Detection",
+        "description": "Detects abnormally large data exports from Dynamics 365 which may indicate insider threat or compromised account data exfiltration. Maps to MITRE ATT&CK T1530 - Data from Cloud Storage.",
+        "severity": "High",
+        "enabled": true,
+        "query": "CloudAppEvents\n| where TimeGenerated > ago(1h)\n| where ActionType has_any (\"Export\", \"Download\", \"FileDownloaded\", \"FileSyncDownloadedFull\")\n| summarize\n    ExportCount = count(),\n    FirstExport = min(TimeGenerated),\n    LastExport = max(TimeGenerated),\n    ExportedObjects = make_set(ObjectName)\n    by AccountDisplayName, AccountObjectId, IPAddress, CountryCode\n| where ExportCount >= 10\n| extend\n    MITRETechnique = \"T1530 - Data from Cloud Storage\",\n    RiskLevel = iff(ExportCount >= 50, \"Critical\", \"High\")\n| project\n    AccountDisplayName,\n    AccountObjectId,\n    ExportCount,\n    FirstExport,\n    LastExport,\n    IPAddress,\n    CountryCode,\n    ExportedObjects,\n    MITRETechnique,\n    RiskLevel",
+        "queryFrequency": "PT1H",
+        "queryPeriod": "PT1H",
+        "triggerOperator": "GreaterThan",
+        "triggerThreshold": 0,
+        "suppressionDuration": "PT2H",
+        "suppressionEnabled": false,
+        "tactics": ["Collection", "Exfiltration"],
+        "techniques": ["T1530"],
+        "incidentConfiguration": {
+          "createIncident": true,
+          "groupingConfiguration": {
+            "enabled": true,
+            "reopenClosedIncident": false,
+            "lookbackDuration": "PT5H",
+            "matchingMethod": "AllEntities",
+            "groupByEntities": ["Account"]
+          }
+        },
+        "entityMappings": [
+          {
+            "entityType": "Account",
+            "fieldMappings": [
+              {
+                "identifier": "FullName",
+                "columnName": "AccountDisplayName"
+              }
+            ]
+          },
+          {
+            "entityType": "IP",
+            "fieldMappings": [
+              {
+                "identifier": "Address",
+                "columnName": "IPAddress"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "parameters": {
+    "workspaceName": {
+      "type": "string",
+      "defaultValue": "law-erp-sentinel"
+    }
+  }
+}

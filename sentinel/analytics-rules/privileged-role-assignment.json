@@ -1,0 +1,63 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "resources": [
+    {
+      "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
+      "apiVersion": "2023-02-01-preview",
+      "name": "[concat(parameters('workspaceName'), '/Microsoft.SecurityInsights/privileged-role-assignment')]",
+      "kind": "Scheduled",
+      "properties": {
+        "displayName": "ERP - Privileged Role Assignment Detected",
+        "description": "Detects when a privileged directory role is assigned to a user or service principal outside of the standard PIM workflow. Maps to MITRE ATT&CK T1098 - Account Manipulation.",
+        "severity": "High",
+        "enabled": true,
+        "query": "AuditLogs\n| where TimeGenerated > ago(1h)\n| where OperationName has_any (\n    \"Add member to role\",\n    \"Add eligible member to role\",\n    \"Add member to role in PIM completed (permanent)\"\n)\n| extend\n    InitiatedByUPN = tostring(InitiatedBy.user.userPrincipalName),\n    InitiatedByApp = tostring(InitiatedBy.app.displayName),\n    TargetUPN = tostring(TargetResources[0].userPrincipalName),\n    RoleName = tostring(TargetResources[1].displayName),\n    RoleId = tostring(TargetResources[1].id)\n| where RoleName has_any (\n    \"Global Administrator\",\n    \"Privileged Role Administrator\",\n    \"Security Administrator\",\n    \"Application Administrator\",\n    \"Exchange Administrator\",\n    \"SharePoint Administrator\",\n    \"Hybrid Identity Administrator\"\n)\n| extend\n    MITRETechnique = \"T1098 - Account Manipulation\",\n    RiskLevel = iff(\n        RoleName has \"Global Administrator\"\n        or RoleName has \"Privileged Role Administrator\",\n        \"Critical\", \"High\"\n    )\n| project\n    TimeGenerated,\n    InitiatedByUPN,\n    InitiatedByApp,\n    TargetUPN,\n    RoleName,\n    RoleId,\n    MITRETechnique,\n    RiskLevel,\n    CorrelationId",
+        "queryFrequency": "PT1H",
+        "queryPeriod": "PT1H",
+        "triggerOperator": "GreaterThan",
+        "triggerThreshold": 0,
+        "suppressionDuration": "PT1H",
+        "suppressionEnabled": false,
+        "tactics": ["Persistence", "PrivilegeEscalation"],
+        "techniques": ["T1098"],
+        "incidentConfiguration": {
+          "createIncident": true,
+          "groupingConfiguration": {
+            "enabled": true,
+            "reopenClosedIncident": false,
+            "lookbackDuration": "PT5H",
+            "matchingMethod": "AllEntities",
+            "groupByEntities": ["Account"]
+          }
+        },
+        "entityMappings": [
+          {
+            "entityType": "Account",
+            "fieldMappings": [
+              {
+                "identifier": "FullName",
+                "columnName": "TargetUPN"
+              }
+            ]
+          },
+          {
+            "entityType": "Account",
+            "fieldMappings": [
+              {
+                "identifier": "FullName",
+                "columnName": "InitiatedByUPN"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "parameters": {
+    "workspaceName": {
+      "type": "string",
+      "defaultValue": "law-erp-sentinel"
+    }
+  }
+}

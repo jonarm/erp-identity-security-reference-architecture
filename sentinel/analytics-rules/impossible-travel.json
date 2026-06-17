@@ -1,0 +1,63 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "resources": [
+    {
+      "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
+      "apiVersion": "2023-02-01-preview",
+      "name": "[concat(parameters('workspaceName'), '/Microsoft.SecurityInsights/impossible-travel')]",
+      "kind": "Scheduled",
+      "properties": {
+        "displayName": "ERP - Impossible Travel Detection",
+        "description": "Detects sign-ins from two geographically distant locations within a timeframe that makes physical travel impossible. Maps to MITRE ATT&CK T1550 - Use Alternate Authentication Material.",
+        "severity": "Medium",
+        "enabled": true,
+        "query": "SigninLogs\n| where TimeGenerated > ago(1h)\n| where ResultType == 0\n| project TimeGenerated, UserPrincipalName, IPAddress, Location, CountryOrRegion = tostring(LocationDetails.countryOrRegion), City = tostring(LocationDetails.city), AppDisplayName\n| join kind=inner (\n    SigninLogs\n    | where TimeGenerated > ago(1h)\n    | where ResultType == 0\n    | project TimeGenerated2 = TimeGenerated, UserPrincipalName, IPAddress2 = IPAddress, Location2 = Location, CountryOrRegion2 = tostring(LocationDetails.countryOrRegion), City2 = tostring(LocationDetails.city)\n) on UserPrincipalName\n| where CountryOrRegion != CountryOrRegion2\n| where abs(datetime_diff('minute', TimeGenerated, TimeGenerated2)) < 60\n| where TimeGenerated < TimeGenerated2\n| extend MITRETechnique = \"T1550 - Use Alternate Authentication Material\", RiskLevel = \"Medium\"\n| project UserPrincipalName, FirstSignInLocation = Location, FirstSignInCountry = CountryOrRegion, FirstSignInTime = TimeGenerated, SecondSignInLocation = Location2, SecondSignInCountry = CountryOrRegion2, SecondSignInTime = TimeGenerated2, IPAddress, MITRETechnique, RiskLevel",
+        "queryFrequency": "PT1H",
+        "queryPeriod": "PT1H",
+        "triggerOperator": "GreaterThan",
+        "triggerThreshold": 0,
+        "suppressionDuration": "PT1H",
+        "suppressionEnabled": false,
+        "tactics": ["LateralMovement"],
+        "techniques": ["T1550"],
+        "incidentConfiguration": {
+          "createIncident": true,
+          "groupingConfiguration": {
+            "enabled": true,
+            "reopenClosedIncident": false,
+            "lookbackDuration": "PT5H",
+            "matchingMethod": "AllEntities",
+            "groupByEntities": ["Account"]
+          }
+        },
+        "entityMappings": [
+          {
+            "entityType": "Account",
+            "fieldMappings": [
+              {
+                "identifier": "FullName",
+                "columnName": "UserPrincipalName"
+              }
+            ]
+          },
+          {
+            "entityType": "IP",
+            "fieldMappings": [
+              {
+                "identifier": "Address",
+                "columnName": "IPAddress"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "parameters": {
+    "workspaceName": {
+      "type": "string",
+      "defaultValue": "law-erp-sentinel"
+    }
+  }
+}

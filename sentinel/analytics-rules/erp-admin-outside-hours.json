@@ -1,0 +1,54 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "resources": [
+    {
+      "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
+      "apiVersion": "2023-02-01-preview",
+      "name": "[concat(parameters('workspaceName'), '/Microsoft.SecurityInsights/erp-admin-outside-hours')]",
+      "kind": "Scheduled",
+      "properties": {
+        "displayName": "ERP - Admin Role Activation Outside Business Hours",
+        "description": "Detects privileged role activations in PIM occurring outside of standard business hours (before 7am or after 7pm AEST, or on weekends). Maps to MITRE ATT&CK T1078.004 - Cloud Accounts.",
+        "severity": "Medium",
+        "enabled": true,
+        "query": "AuditLogs\n| where TimeGenerated > ago(1h)\n| where OperationName has_any (\n    \"Add eligible member to role in PIM completed\",\n    \"Add member to role in PIM completed (permanent)\",\n    \"Add member to role completed\"\n)\n| extend\n    InitiatedByUPN = tostring(InitiatedBy.user.userPrincipalName),\n    RoleName = tostring(TargetResources[0].displayName),\n    HourOfDay = hourofday(TimeGenerated),\n    DayOfWeek = dayofweek(TimeGenerated)\n| where HourOfDay < 7 or HourOfDay > 19\n    or DayOfWeek == time(0) or DayOfWeek == time(6d)\n| extend\n    MITRETechnique = \"T1078.004 - Cloud Accounts\",\n    RiskLevel = \"Medium\",\n    Reason = case(\n        DayOfWeek == time(0) or DayOfWeek == time(6d), \"Weekend activation\",\n        HourOfDay < 7, \"Before business hours\",\n        \"After business hours\"\n    )\n| project\n    TimeGenerated,\n    InitiatedByUPN,\n    RoleName,\n    HourOfDay,\n    DayOfWeek,\n    Reason,\n    MITRETechnique,\n    RiskLevel,\n    CorrelationId",
+        "queryFrequency": "PT1H",
+        "queryPeriod": "PT1H",
+        "triggerOperator": "GreaterThan",
+        "triggerThreshold": 0,
+        "suppressionDuration": "PT2H",
+        "suppressionEnabled": false,
+        "tactics": ["PrivilegeEscalation", "Persistence"],
+        "techniques": ["T1078"],
+        "incidentConfiguration": {
+          "createIncident": true,
+          "groupingConfiguration": {
+            "enabled": true,
+            "reopenClosedIncident": false,
+            "lookbackDuration": "PT5H",
+            "matchingMethod": "AllEntities",
+            "groupByEntities": ["Account"]
+          }
+        },
+        "entityMappings": [
+          {
+            "entityType": "Account",
+            "fieldMappings": [
+              {
+                "identifier": "FullName",
+                "columnName": "InitiatedByUPN"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "parameters": {
+    "workspaceName": {
+      "type": "string",
+      "defaultValue": "law-erp-sentinel"
+    }
+  }
+}
