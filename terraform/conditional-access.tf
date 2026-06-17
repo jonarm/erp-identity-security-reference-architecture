@@ -103,7 +103,7 @@ resource "azuread_conditional_access_policy" "ca004_signin_risk" {
 # ----------------------------------------
 resource "azuread_conditional_access_policy" "ca005_erp_admin_protection" {
   display_name = "CA005 - ERP Admin PIM Role Protection"
-  state        = "enabled"
+  state        = "enabledForReportingButNotEnforced"
 
   conditions {
     users {
