@@ -1,0 +1,198 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "PlaybookName": {
+      "defaultValue": "ERP-Quarantine-Bulk-Export-User",
+      "type": "string"
+    },
+    "WorkspaceName": {
+      "defaultValue": "law-erp-sentinel",
+      "type": "string"
+    }
+  },
+  "variables": {
+    "MicrosoftSentinelConnectionName": "MicrosoftSentinel-Quarantine",
+    "AzureADConnectionName": "AzureAD-Quarantine"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Web/connections",
+      "apiVersion": "2016-06-01",
+      "name": "[variables('AzureADConnectionName')]",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "displayName": "AzureAD-Quarantine",
+        "api": {
+          "id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/azuread')]"
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Web/connections",
+      "apiVersion": "2016-06-01",
+      "name": "[variables('MicrosoftSentinelConnectionName')]",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "displayName": "MicrosoftSentinel-Quarantine",
+        "api": {
+          "id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/azuresentinel')]"
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Logic/workflows",
+      "apiVersion": "2017-07-01",
+      "name": "[parameters('PlaybookName')]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[variables('AzureADConnectionName')]",
+        "[variables('MicrosoftSentinelConnectionName')]"
+      ],
+      "tags": {
+        "project": "erp-identity-security",
+        "environment": "lab"
+      },
+      "properties": {
+        "state": "Enabled",
+        "definition": {
+          "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+          "contentVersion": "1.0.0.0",
+          "parameters": {
+            "$connections": {
+              "defaultValue": {},
+              "type": "Object"
+            }
+          },
+          "triggers": {
+            "Microsoft_Sentinel_incident": {
+              "type": "ApiConnectionWebhook",
+              "inputs": {
+                "body": {
+                  "callback_url": "@{listCallbackUrl()}"
+                },
+                "host": {
+                  "connection": {
+                    "name": "@parameters('$connections')['azuresentinel']['connectionId']"
+                  }
+                },
+                "path": "/incident-creation"
+              }
+            }
+          },
+          "actions": {
+            "Entities_-_Get_Accounts": {
+              "type": "ApiConnection",
+              "inputs": {
+                "body": "@triggerBody()?['object']?['properties']?['relatedEntities']",
+                "host": {
+                  "connection": {
+                    "name": "@parameters('$connections')['azuresentinel']['connectionId']"
+                  }
+                },
+                "method": "post",
+                "path": "/entities/account"
+              }
+            },
+            "For_each_account": {
+              "type": "Foreach",
+              "foreach": "@body('Entities_-_Get_Accounts')?['Accounts']",
+              "actions": {
+                "Disable_user_account": {
+                  "type": "ApiConnection",
+                  "inputs": {
+                    "body": {
+                      "accountEnabled": false
+                    },
+                    "host": {
+                      "connection": {
+                        "name": "@parameters('$connections')['azuread']['connectionId']"
+                      }
+                    },
+                    "method": "patch",
+                    "path": "/v1.0/users/@{items('For_each_account')?['AadUserId']}"
+                  }
+                },
+                "Revoke_sessions_after_disable": {
+                  "type": "ApiConnection",
+                  "runAfter": {
+                    "Disable_user_account": ["Succeeded"]
+                  },
+                  "inputs": {
+                    "host": {
+                      "connection": {
+                        "name": "@parameters('$connections')['azuread']['connectionId']"
+                      }
+                    },
+                    "method": "post",
+                    "path": "/v1.0/users/@{items('For_each_account')?['AadUserId']}/revokeSignInSessions"
+                  }
+                },
+                "Add_quarantine_comment": {
+                  "type": "ApiConnection",
+                  "runAfter": {
+                    "Revoke_sessions_after_disable": ["Succeeded"]
+                  },
+                  "inputs": {
+                    "body": {
+                      "incidentArmId": "@triggerBody()?['object']?['id']",
+                      "message": "<p>AUTOMATED RESPONSE: User @{items('For_each_account')?['Name']} has been quarantined at @{utcNow()}.<br>Actions taken:<br>1. Account disabled in Entra ID<br>2. All active sessions revoked<br>3. Incident escalated for manual review<br>Reason: Bulk data export anomaly detected from Dynamics 365.</p>"
+                    },
+                    "host": {
+                      "connection": {
+                        "name": "@parameters('$connections')['azuresentinel']['connectionId']"
+                      }
+                    },
+                    "method": "post",
+                    "path": "/Incidents/Comment"
+                  }
+                }
+              },
+              "runAfter": {
+                "Entities_-_Get_Accounts": ["Succeeded"]
+              }
+            },
+            "Update_incident": {
+              "type": "ApiConnection",
+              "runAfter": {
+                "For_each_account": ["Succeeded"]
+              },
+              "inputs": {
+                "body": {
+                  "incidentArmId": "@triggerBody()?['object']?['id']",
+                  "status": "Active",
+                  "severity": "High",
+                  "classification": "TruePositive",
+                  "classificationComment": "Automated quarantine applied — bulk export anomaly"
+                },
+                "host": {
+                  "connection": {
+                    "name": "@parameters('$connections')['azuresentinel']['connectionId']"
+                  }
+                },
+                "method": "put",
+                "path": "/Incidents"
+              }
+            }
+          }
+        },
+        "parameters": {
+          "$connections": {
+            "value": {
+              "azuread": {
+                "connectionId": "[resourceId('Microsoft.Web/connections', variables('AzureADConnectionName'))]",
+                "connectionName": "[variables('AzureADConnectionName')]",
+                "id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/azuread')]"
+              },
+              "azuresentinel": {
+                "connectionId": "[resourceId('Microsoft.Web/connections', variables('MicrosoftSentinelConnectionName'))]",
+                "connectionName": "[variables('MicrosoftSentinelConnectionName')]",
+                "id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/azuresentinel')]"
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}
