@@ -4,7 +4,7 @@
 param(
     [string]$ResourceGroupName = "rg-erp-security-lab",
     [string]$WorkspaceName = "law-erp-sentinel",
-    [string]$SubscriptionId = "your-subscription-id"
+    [string]$SubscriptionId = "02905c0c-a44b-4263-aeb5-66c62cfb3c1c"
 )
 
 # Set subscription context
