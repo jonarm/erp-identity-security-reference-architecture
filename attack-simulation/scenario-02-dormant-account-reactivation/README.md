@@ -99,4 +99,4 @@ in ADR-004. The automated leaver workflow should have:
 
 ## Evidence Screenshots
 
-See `docs/screenshots/session-05-attack-simulation/`
+See `docs/screenshots/attack-simulation/`
