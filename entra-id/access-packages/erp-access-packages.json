@@ -1,0 +1,109 @@
+{
+  "accessPackages": [
+    {
+      "packageName": "Finance Standard",
+      "description": "Standard finance role access for journal entry and reporting",
+      "rolesIncluded": ["D365.Finance.User"],
+      "approver": "Line Manager",
+      "approvalRequired": true,
+      "requestorScope": "All employees in Finance department",
+      "reviewFrequency": "Annual",
+      "accessExpiry": "P12M",
+      "sodConflicts": []
+    },
+    {
+      "packageName": "Finance Management",
+      "description": "Finance manager access for approvals and financial statements",
+      "rolesIncluded": ["D365.Finance.Manager"],
+      "approver": "CFO",
+      "approvalRequired": true,
+      "requestorScope": "Finance department leads",
+      "reviewFrequency": "Quarterly",
+      "accessExpiry": "P12M",
+      "sodConflicts": ["D365.AP.PaymentProcessor"]
+    },
+    {
+      "packageName": "Accounts Payable",
+      "description": "Vendor invoice creation and management",
+      "rolesIncluded": ["D365.AP.Officer"],
+      "approver": "Finance Manager",
+      "approvalRequired": true,
+      "requestorScope": "Accounts payable team",
+      "reviewFrequency": "Quarterly",
+      "accessExpiry": "P12M",
+      "sodConflicts": ["D365.AP.PaymentProcessor", "D365.Vendor.Maintainer"]
+    },
+    {
+      "packageName": "Payment Processing",
+      "description": "Authority to process and release supplier payments",
+      "rolesIncluded": ["D365.AP.PaymentProcessor"],
+      "approver": "CFO and CISO",
+      "approvalRequired": true,
+      "requestorScope": "Designated payment officers only",
+      "reviewFrequency": "Quarterly",
+      "accessExpiry": "P12M",
+      "sodConflicts": ["D365.AP.Officer", "D365.Finance.Manager", "D365.Vendor.Maintainer"]
+    },
+    {
+      "packageName": "Procurement Standard",
+      "description": "Create purchase requisitions and orders",
+      "rolesIncluded": ["D365.Procurement.Officer"],
+      "approver": "Line Manager",
+      "approvalRequired": true,
+      "requestorScope": "All employees in Procurement department",
+      "reviewFrequency": "Annual",
+      "accessExpiry": "P12M",
+      "sodConflicts": ["D365.Procurement.Approver"]
+    },
+    {
+      "packageName": "Procurement Approval",
+      "description": "Approve purchase orders above defined threshold",
+      "rolesIncluded": ["D365.Procurement.Approver"],
+      "approver": "CPO",
+      "approvalRequired": true,
+      "requestorScope": "Procurement leads",
+      "reviewFrequency": "Quarterly",
+      "accessExpiry": "P12M",
+      "sodConflicts": ["D365.Procurement.Officer"]
+    },
+    {
+      "packageName": "Vendor Management",
+      "description": "Create and modify vendor master records",
+      "rolesIncluded": ["D365.Vendor.Maintainer"],
+      "approver": "Finance Manager",
+      "approvalRequired": true,
+      "requestorScope": "Vendor management team",
+      "reviewFrequency": "Quarterly",
+      "accessExpiry": "P12M",
+      "sodConflicts": ["D365.AP.Officer", "D365.AP.PaymentProcessor"]
+    },
+    {
+      "packageName": "Audit Read-Only",
+      "description": "Read-only access to all modules for audit and compliance review",
+      "rolesIncluded": ["D365.Risk.Auditor"],
+      "approver": "CISO",
+      "approvalRequired": true,
+      "requestorScope": "Risk and Compliance team",
+      "reviewFrequency": "Annual",
+      "accessExpiry": "P12M",
+      "sodConflicts": []
+    },
+    {
+      "packageName": "ERP Admin (JIT)",
+      "description": "Full system configuration access via PIM just-in-time activation only — no standing assignment",
+      "rolesIncluded": ["D365.System.Admin"],
+      "approver": "CISO and CTO",
+      "approvalRequired": true,
+      "requestorScope": "IT security team — eligible assignment only",
+      "reviewFrequency": "Per activation",
+      "accessExpiry": "PT4H (max activation window)",
+      "sodConflicts": ["EntraID.GlobalAdmin"]
+    }
+  ],
+  "_metadata": {
+    "note": "Reference definition of Entra ID Entitlement Management access packages enforcing SoD constraints at provisioning time.",
+    "sodMatrixReference": "docs/segregation-of-duties.md",
+    "provisioningWorkflow": "docs/adr/ADR-004-scim-vs-manual-provisioning.md",
+    "author": "Jonar"
+  }
+}
