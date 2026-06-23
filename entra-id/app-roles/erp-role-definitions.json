@@ -1,0 +1,81 @@
+{
+  "appRoles": [
+    {
+      "id": "00000001-0000-0000-0000-000000000001",
+      "displayName": "Finance User",
+      "description": "View and enter journal entries and run standard reports",
+      "value": "D365.Finance.User",
+      "allowedMemberTypes": ["User"],
+      "isEnabled": true
+    },
+    {
+      "id": "00000001-0000-0000-0000-000000000002",
+      "displayName": "Finance Manager",
+      "description": "Approve journal entries and access financial statements",
+      "value": "D365.Finance.Manager",
+      "allowedMemberTypes": ["User"],
+      "isEnabled": true
+    },
+    {
+      "id": "00000001-0000-0000-0000-000000000003",
+      "displayName": "Accounts Payable Officer",
+      "description": "Create and manage vendor invoices",
+      "value": "D365.AP.Officer",
+      "allowedMemberTypes": ["User"],
+      "isEnabled": true
+    },
+    {
+      "id": "00000001-0000-0000-0000-000000000004",
+      "displayName": "Payment Processor",
+      "description": "Process and release supplier payments",
+      "value": "D365.AP.PaymentProcessor",
+      "allowedMemberTypes": ["User"],
+      "isEnabled": true
+    },
+    {
+      "id": "00000001-0000-0000-0000-000000000005",
+      "displayName": "Procurement Officer",
+      "description": "Create purchase requisitions and orders",
+      "value": "D365.Procurement.Officer",
+      "allowedMemberTypes": ["User"],
+      "isEnabled": true
+    },
+    {
+      "id": "00000001-0000-0000-0000-000000000006",
+      "displayName": "Procurement Approver",
+      "description": "Approve purchase orders above threshold",
+      "value": "D365.Procurement.Approver",
+      "allowedMemberTypes": ["User"],
+      "isEnabled": true
+    },
+    {
+      "id": "00000001-0000-0000-0000-000000000007",
+      "displayName": "Vendor Master Maintainer",
+      "description": "Create and modify vendor records",
+      "value": "D365.Vendor.Maintainer",
+      "allowedMemberTypes": ["User"],
+      "isEnabled": true
+    },
+    {
+      "id": "00000001-0000-0000-0000-000000000008",
+      "displayName": "Risk Auditor",
+      "description": "Read-only access to all modules for audit purposes",
+      "value": "D365.Risk.Auditor",
+      "allowedMemberTypes": ["User"],
+      "isEnabled": true
+    },
+    {
+      "id": "00000001-0000-0000-0000-000000000009",
+      "displayName": "ERP System Admin",
+      "description": "Full system configuration access — JIT via PIM only",
+      "value": "D365.System.Admin",
+      "allowedMemberTypes": ["User"],
+      "isEnabled": true
+    }
+  ],
+  "_metadata": {
+    "note": "Reference definition of app roles. Deployed via terraform/entra-app-roles.tf and terraform/entra-enterprise-app.tf — this JSON file documents the role schema independent of the IaC implementation.",
+    "sodMatrix": "See docs/segregation-of-duties.md for role conflict rules",
+    "author": "Jonar"
+  }
+}

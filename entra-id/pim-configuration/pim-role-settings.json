@@ -1,0 +1,53 @@
+{
+  "pimRoleSettings": [
+    {
+      "roleName": "Global Administrator",
+      "assignmentType": "Eligible",
+      "maxActivationDuration": "PT2H",
+      "requireMFAOnActivation": true,
+      "requireJustification": true,
+      "requireApproval": true,
+      "approvers": ["CISO", "CTO"],
+      "approvalType": "Dual — both must approve",
+      "notificationChannels": ["Email", "Teams", "SMS"],
+      "assignmentReviewFrequency": "Monthly",
+      "assignmentExpiry": "P12M"
+    },
+    {
+      "roleName": "Application Administrator",
+      "assignmentType": "Eligible",
+      "maxActivationDuration": "PT4H",
+      "requireMFAOnActivation": true,
+      "requireJustification": true,
+      "requireApproval": true,
+      "approvers": ["CISO"],
+      "approvalType": "Single approver",
+      "notificationChannels": ["Email", "Teams"],
+      "assignmentReviewFrequency": "Monthly",
+      "assignmentExpiry": "P12M"
+    }
+  ],
+  "breakglassAccounts": [
+    {
+      "accountPattern": "breakglass-01@<tenant>.onmicrosoft.com",
+      "accountType": "Cloud-only",
+      "excludedFromConditionalAccess": true,
+      "mfaMethod": "FIDO2 hardware key — physical safe",
+      "monitoringRule": "Any sign-in triggers immediate Sentinel critical alert",
+      "reviewFrequency": "Quarterly"
+    },
+    {
+      "accountPattern": "breakglass-02@<tenant>.onmicrosoft.com",
+      "accountType": "Cloud-only",
+      "excludedFromConditionalAccess": true,
+      "mfaMethod": "FIDO2 hardware key — physical safe",
+      "monitoringRule": "Any sign-in triggers immediate Sentinel critical alert",
+      "reviewFrequency": "Quarterly"
+    }
+  ],
+  "_metadata": {
+    "note": "Reference configuration for PIM eligible role assignments. Deployed via terraform/pim.tf. Full design rationale documented in docs/adr/ADR-002-pim-for-erp-admin.md",
+    "deployedRoles": "See terraform/pim.tf for actual eligible assignment resources",
+    "author": "Jonar"
+  }
+}
