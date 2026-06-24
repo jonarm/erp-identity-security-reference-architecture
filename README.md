@@ -243,6 +243,18 @@ A former ERP System Admin account is reactivated via a misconfigured HR sync. Th
 
 ---
 
+## Documentation
+
+| Document | Description |
+|---|---|
+| [Architecture Overview](docs/architecture-overview.md) | Full design rationale, component breakdown, and data flow diagrams |
+| [Identity Lifecycle](docs/identity-lifecycle.md) | Joiner / Mover / Leaver workflows and SCIM automation |
+| [Segregation of Duties](docs/segregation-of-duties.md) | SoD conflict matrix and access package design for all 9 ERP roles |
+| [ERP Threat Model](docs/erp-threat-model.md) | STRIDE analysis and MITRE ATT&CK threat scenarios |
+| [Framework Mapping](docs/framework-mapping.md) | Control mapping to Essential Eight, VPDSF, NIST, ISO 27001, APRA CPS 234 |
+
+---
+
 ## Repository Structure
 ```mermaid
 graph LR
