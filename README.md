@@ -1,22 +1,119 @@
 # Zero Trust Identity Security for SaaS ERP
 ### Microsoft Dynamics 365 — Reference Architecture using Entra ID, Sentinel, and Defender for Cloud Apps
 
-> A reference implementation of a Zero Trust security architecture securing a Dynamics 365 Financial Services deployment. Built using Microsoft Sentinel, Entra ID P2, and Defender for Cloud Apps — deployed as Infrastructure-as-Code and mapped to the ACSC Essential Eight and Victorian Protective Data Security Standards (VPDSF).
+## Overview
+
+This project demonstrates the design and implementation of a Zero Trust security architecture securing a Dynamics 365 Financial Services deployment. Built using Microsoft Sentinel, Entra ID P2, and Defender for Cloud Apps — deployed as Infrastructure-as-Code and mapped to the ACSC Essential Eight and Victorian Protective Data Security Standards (VPDSF).
+
+
+The solution models a mid-sized financial services organisation and showcases how Microsoft security technologies can be combined to implement preventative, detective, and responsive controls across the identity lifecycle.
+
+The project focuses on:
+
+- Identity-centric security architecture
+- Least privilege and Just-in-Time administration
+- SaaS ERP access governance
+- Security monitoring and detection engineering
+- Automated incident response
+- Infrastructure-as-Code deployment
+- Compliance alignment with Australian government and industry security frameworks
+
+The implementation is built using:
+
+- Microsoft Entra ID P2
+- Microsoft Sentinel
+- Microsoft Defender for Cloud Apps
+- Azure Logic Apps
+- Terraform
+- PowerShell
+
+The architecture follows Zero Trust principles:
+
+- Verify explicitly
+- Use least privilege access
+- Assume breach
+
+All controls, detections, and response workflows are documented and mapped to recognised security frameworks including ACSC Essential Eight, VPDSF, NIST 800-207, ISO 27001, and MITRE ATT&CK.
 
 ---
 
-## Overview
+## Key Outcomes
 
-This project models the identity and access security architecture for a mid-sized financial services organisation migrating their ERP to Microsoft Dynamics 365. It demonstrates how to secure the identity layer, monitor for threats specific to financial ERP workloads, and enforce access governance across the SaaS environment using Microsoft's native security stack.
+| Metric | Value |
+|----------|----------|
+| Conditional Access Policies | 6 |
+| Sentinel Analytics Rules | 8 |
+| SOAR Playbooks | 3 |
+| Attack Simulations | 3 |
+| Access Packages | 4 |
+| Privileged Roles Protected by PIM | 7 |
+| Simulated Users | 25 |
+| Departments Modelled | 4 |
+| Infrastructure-as-Code Coverage | 100% |
 
-The architecture is designed around three core principles:
-- **No standing privileged access** — all Dynamics 365 admin roles are time-limited via PIM
-- **Identity is the perimeter** — Conditional Access enforces Zero Trust for every ERP session
-- **Assume breach** — Sentinel detects and responds to ERP-specific threat scenarios automatically
+---
+## Evidence
+
+### Identity Controls
+- Conditional Access policies: `docs/screenshots/conditional-access/`
+- PIM configuration: `entra-id/pim-configuration/`
+- Access packages: `entra-id/access-packages/`
+- App roles: `entra-id/app-roles/`
+
+### Detection Engineering
+- Analytics rules: `sentinel/analytics-rules/`
+- Sentinel screenshots: `docs/screenshots/sentinel/`
+- Workbooks: `sentinel/workbooks/`
+
+### SOAR Automation
+- ERP Admin Activation Notification:
+  `sentinel/playbooks/notify-erp-admin-activation/`
+
+- Bulk Export User Quarantine:
+  `sentinel/playbooks/quarantine-bulk-export-user/`
+
+- ERP Session Revocation:
+  `sentinel/playbooks/revoke-erp-session/`
+
+### Infrastructure as Code
+- Terraform deployment:
+  `terraform/`
+
+- Terraform screenshots:
+  `docs/screenshots/terraform/`
+
+### Attack Simulations
+- MFA Fatigue:
+  `attack-simulation/scenario-01-mfa-fatigue/`
+
+- Dormant Account Reactivation:
+  `attack-simulation/scenario-02-dormant-account-reactivation/`
+
+- Bulk Data Exfiltration:
+  `attack-simulation/scenario-03-bulk-data-exfiltration/`
+
 
 ---
 
 ## Architecture Overview
+
+The architecture secures access to Microsoft Dynamics 365 through an identity-first security model.
+
+### Security Layers
+
+| Layer | Purpose |
+|---------|---------|
+| Entra ID | Authentication and identity governance |
+| Conditional Access | Zero Trust access enforcement |
+| PIM | Just-in-Time privileged access |
+| Entitlement Management | Automated provisioning and lifecycle management |
+| Defender for Cloud Apps | Session monitoring and SaaS activity controls |
+| Sentinel | Detection engineering and incident monitoring |
+| Logic Apps | Automated containment and response |
+| Terraform | Infrastructure-as-Code deployment |
+
+The architecture is designed to prevent, detect, and respond to common ERP attack scenarios including credential theft, privilege escalation, insider threats, and data exfiltration.
+
 ```mermaid
 graph TD
     subgraph TENANT["FINANCIAL SERVICES TENANT"]
@@ -56,6 +153,24 @@ graph TD
     class SENTINEL monitoring
     class MCAS casb
 ```
+---
+
+## Threat Model
+
+Threat modelling artifacts are available in:
+
+`docs/erp-threat-model.md`
+
+The threat model covers:
+
+- Identity attack paths
+- Privileged access abuse
+- ERP data exfiltration
+- Account takeover scenarios
+- Joiner / Mover / Leaver control failures
+- Zero Trust mitigations
+- Detection and response mappings
+
 ---
 
 ## Simulated Organisation
@@ -114,6 +229,17 @@ An attacker uses a leaked credential list against the Dynamics 365 SSO login. Mu
 
 ### Scenario 3 — Dormant Privileged Account Reactivation
 A former ERP System Admin account is reactivated via a misconfigured HR sync. The `erp-dormant-account-activation` rule fires immediately. This scenario is used to demonstrate the joiner/mover/leaver control gap and the preventive role of automated offboarding.
+
+---
+
+## Architecture Decisions
+
+| Decision | ADR |
+|-----------|-----------|
+| SAML vs OIDC Integration | `docs/adr/ADR-001-sso-saml-vs-oidc.md` |
+| PIM for ERP Administrators | `docs/adr/ADR-002-pim-for-erp-admin.md` |
+| MCAS Session Controls | `docs/adr/ADR-003-mcas-session-controls.md` |
+| SCIM Provisioning Strategy | `docs/adr/ADR-004-scim-vs-manual-provisioning.md` |
 
 ---
 
