@@ -45,9 +45,8 @@ All controls, detections, and response workflows are documented and mapped to re
 | Sentinel Analytics Rules | 8 |
 | SOAR Playbooks | 3 |
 | Attack Simulations | 3 |
-| Access Packages | 4 |
-| Privileged Roles Protected by PIM | 7 |
-| Simulated Users | 25 |
+| Access Packages | 9 |
+| Privileged Roles Protected by PIM | 2 |
 | Departments Modelled | 4 |
 | Infrastructure-as-Code Coverage | 100% |
 
@@ -186,16 +185,18 @@ The threat model covers:
 
 ### ERP Role Structure
 
-| Role | Department | Sensitivity | Access Method |
-|---|---|---|---|
-| Finance User | Finance | Medium | Standard + MFA |
-| Finance Manager | Finance | High | Compliant device + MFA |
-| Procurement Officer | Procurement | Medium | Standard + MFA |
-| Procurement Approver | Procurement | High | Compliant device + MFA |
-| ERP System Admin | IT | Critical | PIM JIT + MFA + PAW |
-| Risk Auditor | Risk & Compliance | High | Read-only + MFA |
-| Global Admin | IT | Critical | PIM JIT + MFA + PAW |
-
+| Role ID | Role | Department | Sensitivity | Access Method |
+|---|---|---|---|---|
+| R01 | Finance User | Finance | Medium | Standard + MFA |
+| R02 | Finance Manager | Finance | High | Compliant device + MFA |
+| R03 | Accounts Payable Officer | Finance | High | Standard + MFA |
+| R04 | Payment Processor | Finance | Critical | Compliant device + MFA |
+| R05 | Procurement Officer | Procurement | Medium | Standard + MFA |
+| R06 | Procurement Approver | Procurement | High | Compliant device + MFA |
+| R07 | Vendor Master Maintainer | Procurement | High | Standard + MFA |
+| R08 | Risk Auditor | Risk & Compliance | High | Read-only + MFA |
+| R09 | ERP System Admin | IT | Critical | PIM JIT + MFA + Compliant device |
+| R10 | Global Admin | IT | Critical | PIM JIT + MFA + Compliant device |
 ---
 
 ## Security Controls Implemented
@@ -320,7 +321,7 @@ Full control mapping in [`docs/adr/framework-mapping.md`](docs/adr/framework-map
 | ACSC Essential Eight | MFA (ML2), Restrict Admin (ML2), Application Control |
 | VPDSF / VPDSS | ICT Security, Information Security, Personnel Security |
 | NIST 800-207 | Zero Trust Architecture principles |
-| MITRE ATT&CK | T1078, T1530, T1136, T1098, T1110 |
+| MITRE ATT&CK | T1078, T1530, T1136, T1098, T1110,  T1621 (MFA fatigue), T1550 (impossible travel), T1528 (service principal), T1078.004 (outside hours)  |
 | ISO 27001 | A.9 Access Control, A.12 Operations Security |
 
 ---
