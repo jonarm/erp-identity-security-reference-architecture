@@ -47,7 +47,6 @@ All controls, detections, and response workflows are documented and mapped to re
 | Attack Simulations | 3 |
 | Access Packages | 9 |
 | Privileged Roles Protected by PIM | 2 |
-| Departments Modelled | 4 |
 | Infrastructure-as-Code Coverage | 100% |
 
 ---
