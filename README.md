@@ -325,7 +325,7 @@ See [`terraform/README.md`](terraform/README.md) for full deployment instruction
 
 ## Framework Mappings
 
-Full control mapping in [`docs/adr/framework-mapping.md`](docs/adr/framework-mapping.md)
+Full control mapping in [`docs/adr/framework-mapping.md`](docs/framework-mapping.md)
 
 | Framework | Coverage |
 |---|---|
