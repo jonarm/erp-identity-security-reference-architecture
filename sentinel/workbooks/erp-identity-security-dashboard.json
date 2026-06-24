@@ -1,0 +1,130 @@
+{
+  "version": "Notebook/1.0",
+  "items": [
+    {
+      "type": 1,
+      "content": {
+        "json": "# ERP Identity Security Dashboard\n### Contoso Financial Services — Dynamics 365\n\nMonitoring dashboard for identity-related security events across the ERP environment. Covers sign-in anomalies, privileged access activity, and detection rule performance.\n\n*Author: Jonar*"
+      },
+      "name": "title"
+    },
+    {
+      "type": 9,
+      "content": {
+        "version": "KqlParameterItem/1.0",
+        "parameters": [
+          {
+            "id": "timeRange",
+            "version": "KqlParameterItem/1.0",
+            "name": "TimeRange",
+            "type": 4,
+            "value": {
+              "durationMs": 86400000
+            },
+            "typeSettings": {
+              "selectableValues": [
+                { "durationMs": 3600000 },
+                { "durationMs": 14400000 },
+                { "durationMs": 86400000 },
+                { "durationMs": 604800000 }
+              ]
+            }
+          }
+        ]
+      },
+      "name": "parameters"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "SigninLogs\n| where TimeGenerated {TimeRange}\n| summarize SuccessCount = countif(ResultType == 0), FailedCount = countif(ResultType != 0) by bin(TimeGenerated, 1h)\n| render timechart",
+        "size": 0,
+        "title": "Sign-in Success vs Failure Over Time",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "name": "signin-trend"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "SigninLogs\n| where TimeGenerated {TimeRange}\n| where ResultType != 0\n| summarize FailedAttempts = count() by UserPrincipalName\n| top 10 by FailedAttempts desc\n| render barchart",
+        "size": 0,
+        "title": "Top 10 Users by Failed Sign-in Attempts",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "name": "top-failed-users"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "SigninLogs\n| where TimeGenerated {TimeRange}\n| summarize Attempts = count() by IPAddress, Location\n| top 10 by Attempts desc",
+        "size": 0,
+        "title": "Top 10 Source IP Addresses",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "name": "top-source-ips"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AuditLogs\n| where TimeGenerated {TimeRange}\n| where OperationName has_any (\"Add member to role\", \"Add eligible member to role\")\n| project TimeGenerated, OperationName, InitiatedBy = tostring(InitiatedBy.user.userPrincipalName), TargetResources = tostring(TargetResources[0].displayName)\n| order by TimeGenerated desc",
+        "size": 0,
+        "title": "Privileged Role Assignment Activity",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "name": "role-assignments"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AuditLogs\n| where TimeGenerated {TimeRange}\n| where OperationName has_any (\"Add eligible member to role in PIM completed\", \"Add member to role in PIM completed\")\n| project TimeGenerated, OperationName, InitiatedBy = tostring(InitiatedBy.user.userPrincipalName), Result\n| order by TimeGenerated desc",
+        "size": 0,
+        "title": "PIM Activation Events",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "name": "pim-activations"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "SecurityIncident\n| where TimeGenerated {TimeRange}\n| summarize Count = count() by Severity\n| render piechart",
+        "size": 0,
+        "title": "Incidents by Severity",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "name": "incidents-by-severity"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "SecurityIncident\n| where TimeGenerated {TimeRange}\n| project TimeGenerated, Title, Severity, Status\n| order by TimeGenerated desc",
+        "size": 0,
+        "title": "Recent Sentinel Incidents",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "name": "recent-incidents"
+    }
+  ],
+  "fallbackResourceIds": [
+    "/subscriptions/{subscription-id}/resourceGroups/rg-erp-security-lab/providers/Microsoft.OperationalInsights/workspaces/law-erp-sentinel"
+  ],
+  "_metadata": {
+    "note": "Sentinel workbook providing identity security monitoring dashboard. Import via Sentinel → Workbooks → Add Workbook → Edit → Advanced Editor, paste this JSON, replace {subscription-id} with actual value.",
+    "panels": "Sign-in trends, failed login analysis, source IP tracking, privileged role activity, PIM activations, incident severity breakdown",
+    "author": "Jonar"
+  }
+}
